@@ -1,0 +1,128 @@
+//enum statuses
+Enum appointment_status {
+  scheduled
+  completed
+  cancelled
+}
+
+Enum treatment_status {
+  ongoing
+  resolved
+  discontinued
+}
+
+// Database
+
+
+Table patients {
+  patient_id int [pk]
+  first_name varchar
+  last_name varchar
+  email varchar [unique, not null]
+  phone varchar
+  national_id varchar(11) [unique, not null] 
+  is_active boolean [default: true] 
+  created_at timestamp [default: `now()`] 
+  updated_at timestamp 
+}
+
+
+Table doctors {
+  doctor_id int [pk]
+  first_name varchar
+  last_name varchar
+  medical_license_number varchar(7) [unique, not null] 
+  is_active boolean [default: true] 
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+
+Table specialties {
+  specialty_id int [pk]
+  name varchar 
+}
+
+
+Table diseases {
+  disease_id int [pk]
+  name varchar
+  category varchar 
+}
+
+
+Table appointments {
+  appointment_id int [pk]
+  patient_id int
+  doctor_id int
+  date date
+  time_start time
+  time_end time [note: 'time_end > time_start']
+  status appointment_status [default: 'scheduled']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+// M:N
+
+
+Table doctors_specialties {
+  doctor_id int
+  specialty_id int
+
+  Indexes {
+    (doctor_id, specialty_id) [pk]
+  }
+}
+
+
+Table specialties_diseases {
+  specialty_id int
+  disease_id int
+
+  Indexes {
+    (specialty_id, disease_id) [pk]
+  }
+}
+
+
+Table appointments_diseases {
+  appointment_id int
+  disease_id int
+  info text
+
+  Indexes {
+    (appointment_id, disease_id) [pk]
+  }
+}
+
+Table patients_diseases {
+  patient_id int
+  disease_id int
+  info text
+  diagnosis_date date
+  status treatment_status [default: 'ongoing']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+
+  Indexes {
+    (patient_id, disease_id) [pk]
+  }
+}
+
+// Relations
+
+Ref: appointments.patient_id > patients.patient_id
+Ref: appointments.doctor_id > doctors.doctor_id
+
+Ref: doctors_specialties.doctor_id > doctors.doctor_id
+Ref: doctors_specialties.specialty_id > specialties.specialty_id
+
+Ref: specialties_diseases.specialty_id > specialties.specialty_id
+Ref: specialties_diseases.disease_id > diseases.disease_id
+
+Ref: appointments_diseases.appointment_id > appointments.appointment_id
+Ref: appointments_diseases.disease_id > diseases.disease_id
+
+Ref: patients_diseases.patient_id > patients.patient_id
+Ref: patients_diseases.disease_id > diseases.disease_id
